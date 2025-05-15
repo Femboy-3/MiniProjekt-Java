@@ -46,53 +46,60 @@ public class Login extends JFrame {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
 
-        int userId = login(email, password);
+        UserLoginResult result = login(email, password);
 
-        switch (userId) {
-            case 0:
-                JOptionPane.showMessageDialog(this, "Invalid email or password.");
-                break;
-            case -1:
-                UserSession.isAdmin = true;
-                UserSession.userId = userId;
-                dispose();
-                new MainPage();
-                break;
-            default:
-                UserSession.isAdmin = false;
-                UserSession.userId = userId;
-                dispose();
-                new MainPage();
-                break;
+        if (result.userId == 0) {
+            JOptionPane.showMessageDialog(this, "Invalid email or password.");
+        } else {
+            UserSession.userId = result.userId;
+            UserSession.isAdmin = result.isAdmin;
+            dispose();
+            new MainPage();
         }
     }
-
 
     private void openRegisterForm() {
         dispose();
         new Register();
     }
 
-    public static int login(String email, String password) {
+    // Helper class to hold login results
+    private static class UserLoginResult {
+        int userId;
+        boolean isAdmin;
+
+        UserLoginResult(int userId, boolean isAdmin) {
+            this.userId = userId;
+            this.isAdmin = isAdmin;
+        }
+    }
+
+    public static UserLoginResult login(String email, String password) {
         int userId = 0;
+        boolean isAdmin = false;
 
         try {
             Class.forName("org.postgresql.Driver");
             try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
-                String query = "{? = call login_user(?, ?)}"; // function must return INTEGER
-                try (CallableStatement stmt = conn.prepareCall(query)) {
-                    stmt.registerOutParameter(1, Types.INTEGER);
-                    stmt.setString(2, email);
-                    stmt.setString(3, password);
-                    stmt.execute();
-                    userId = stmt.getInt(1);
+                String query = "SELECT * FROM login_user(?, ?)";
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, email);
+                    stmt.setString(2, password);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            userId = rs.getInt("userid");
+                            isAdmin = rs.getBoolean("isadmin");
+                        } else {
+                        }
+                    }
                 }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return userId;
+        return new UserLoginResult(userId, isAdmin);
     }
 
     public static void main(String[] args) {

@@ -151,8 +151,7 @@ public class MainPage {
 
         private void handleComments() {
             int routeId = (int) model.getValueAt(selectedRow, 0);
-            JOptionPane.showMessageDialog(null, "Invalid email or password.");
-            //new CommentPage(routeId);
+            new CommentPage(routeId);
             fireEditingStopped();
         }
 
