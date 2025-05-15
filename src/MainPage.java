@@ -163,18 +163,20 @@ public class MainPage {
             int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete route ID: " + routeId + "?");
             if (confirm == JOptionPane.YES_OPTION) {
                 try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
-                    String sql = "DELETE FROM routs WHERE id = ?";
+                    String sql = "SELECT delete_route(?)";
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setInt(1, routeId);
-                        stmt.executeUpdate();
+                        stmt.execute();
                     }
                 } catch (SQLException ex) {
                     ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error deleting route: " + ex.getMessage());
                 }
                 loadRoutesData();
             }
             fireEditingStopped();
         }
+
 
         @Override
         public Object getCellEditorValue() {
