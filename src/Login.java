@@ -53,17 +53,20 @@ public class Login extends JFrame {
                 JOptionPane.showMessageDialog(this, "Invalid email or password.");
                 break;
             case -1:
-                JOptionPane.showMessageDialog(this, "Welcome admin!");
+                UserSession.isAdmin = true;
+                UserSession.userId = userId;
                 dispose();
-                //new MainPage(-1); // you might want a special admin view
+                //new MainPage();
                 break;
             default:
-                JOptionPane.showMessageDialog(this, "Login successful. User ID: " + userId);
+                UserSession.isAdmin = false;
+                UserSession.userId = userId;
                 dispose();
-                //new MainPage(userId);
+                //new MainPage();
                 break;
         }
     }
+
 
     private void openRegisterForm() {
         dispose();
