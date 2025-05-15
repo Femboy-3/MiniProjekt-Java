@@ -1,0 +1,200 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import java.sql.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class MainPage {
+
+    private JFrame frame;
+    private JTable routesTable;
+    private DefaultTableModel model;
+
+    // DB connection
+    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "Star.wars1#";
+
+    public MainPage() {
+        frame = new JFrame("Routes Table");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 600);
+        frame.setLayout(new BorderLayout());
+
+        String[] columnNames = {
+                "ID", "Name", "Length", "Difficulty", "Duration", "Description", "Number of POIs",
+                "Start Location", "End Location", "Date Created", "Actions"
+        };
+
+        model = new DefaultTableModel(null, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 10;
+            }
+        };
+
+        routesTable = new JTable(model);
+        routesTable.setRowHeight(40);
+
+        JScrollPane scrollPane = new JScrollPane(routesTable);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton addRouteButton = new JButton("Add Route");
+        JButton logoutButton = new JButton("Logout");
+
+        bottomPanel.add(logoutButton);
+        bottomPanel.add(addRouteButton);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+
+        logoutButton.addActionListener(e -> {
+            UserSession.clear();
+            frame.dispose();
+            new Login();
+        });
+
+        routesTable.getColumn("Actions").setCellRenderer(new ButtonRenderer());
+        routesTable.getColumn("Actions").setCellEditor(new ButtonEditor(new JCheckBox()));
+
+        loadRoutesData();
+
+        frame.setVisible(true);
+    }
+
+    public void loadRoutesData() {
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+            String query = "SELECT * FROM get_all_routes()";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                ResultSet rs = stmt.executeQuery();
+                model.setRowCount(0);
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String name = rs.getString("name");
+                    float length = rs.getFloat("length");
+                    int difficulty = rs.getInt("difficulty");
+                    float duration = rs.getFloat("duration");
+                    String description = rs.getString("description");
+                    int numOfPoi = rs.getInt("num_of_poi");
+                    String startLocation = rs.getString("start_location_name");
+                    String endLocation = rs.getString("end_location_name");
+                    Timestamp dateCreated = rs.getTimestamp("date_created");
+
+                    model.addRow(new Object[]{id, name, length, difficulty, duration, description, numOfPoi, startLocation, endLocation, dateCreated, "Actions"});
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        autoResizeColumn(routesTable, 10);
+    }
+
+    private void autoResizeColumn(JTable table, int columnIndex) {
+        TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
+        Component headerComp = headerRenderer.getTableCellRendererComponent(table, table.getColumnName(columnIndex), false, false, 0, columnIndex);
+        int maxWidth = headerComp.getPreferredSize().width;
+
+        for (int row = 0; row < table.getRowCount(); row++) {
+            TableCellRenderer cellRenderer = table.getCellRenderer(row, columnIndex);
+            Component comp = table.prepareRenderer(cellRenderer, row, columnIndex);
+            maxWidth = Math.max(comp.getPreferredSize().width, maxWidth);
+        }
+
+        table.getColumnModel().getColumn(columnIndex).setPreferredWidth(maxWidth + 20); // extra padding
+    }
+
+    class ButtonRenderer extends JPanel implements TableCellRenderer {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column) {
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            JButton commentButton = new JButton("Comments");
+            panel.add(commentButton);
+            if (UserSession.isAdmin) {
+                JButton updateButton = new JButton("Update");
+                JButton deleteButton = new JButton("Delete");
+                panel.add(updateButton);
+                panel.add(deleteButton);
+            }
+            return panel;
+        }
+    }
+
+    class ButtonEditor extends DefaultCellEditor {
+        private JPanel panel;
+        private JButton commentButton;
+        private JButton updateButton;
+        private JButton deleteButton;
+        private int selectedRow;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            commentButton = new JButton("Comments");
+            commentButton.addActionListener(e -> handleComments());
+            panel.add(commentButton);
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            panel.removeAll();
+            selectedRow = row;
+            panel.add(commentButton);
+            if (UserSession.isAdmin) {
+                updateButton = new JButton("Update");
+                deleteButton = new JButton("Delete");
+                updateButton.addActionListener(e -> handleUpdate());
+                deleteButton.addActionListener(e -> handleDelete());
+                panel.add(updateButton);
+                panel.add(deleteButton);
+            }
+            return panel;
+        }
+
+        private void handleComments() {
+            int routeId = (int) model.getValueAt(selectedRow, 0);
+            JOptionPane.showMessageDialog(null, "Open comments for route ID: " + routeId);
+            fireEditingStopped();
+        }
+
+        private void handleUpdate() {
+            int routeId = (int) model.getValueAt(selectedRow, 0);
+            JOptionPane.showMessageDialog(null, "Open update page for route ID: " + routeId);
+            fireEditingStopped();
+        }
+
+        private void handleDelete() {
+            int routeId = (int) model.getValueAt(selectedRow, 0);
+            int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete route ID: " + routeId + "?");
+            if (confirm == JOptionPane.YES_OPTION) {
+                try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+                    String sql = "DELETE FROM routs WHERE id = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                        stmt.setInt(1, routeId);
+                        stmt.executeUpdate();
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                loadRoutesData();
+            }
+            fireEditingStopped();
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "Actions";
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        SwingUtilities.invokeLater(() -> new MainPage());
+    }
+}

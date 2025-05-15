@@ -56,13 +56,13 @@ public class Login extends JFrame {
                 UserSession.isAdmin = true;
                 UserSession.userId = userId;
                 dispose();
-                //new MainPage();
+                new MainPage();
                 break;
             default:
                 UserSession.isAdmin = false;
                 UserSession.userId = userId;
                 dispose();
-                //new MainPage();
+                new MainPage();
                 break;
         }
     }
