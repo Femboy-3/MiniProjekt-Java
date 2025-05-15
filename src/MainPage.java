@@ -50,11 +50,14 @@ public class MainPage {
         frame.add(scrollPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton addRouteButton = new JButton("Add Route");
         JButton logoutButton = new JButton("Logout");
 
         bottomPanel.add(logoutButton);
-        bottomPanel.add(addRouteButton);
+        if(UserSession.isAdmin) {
+            JButton addRouteButton = new JButton("Add Route");
+            addRouteButton.addActionListener(e -> new AddRoutePage());
+            bottomPanel.add(addRouteButton);
+        }
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         logoutButton.addActionListener(e -> {
