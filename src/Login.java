@@ -57,7 +57,7 @@ public class Login extends JFrame {
 
     private void openRegisterForm() {
         dispose();
-        //new Register();
+        new Register();
     }
 
     public static boolean login(String email, String password) {
