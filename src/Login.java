@@ -46,12 +46,22 @@ public class Login extends JFrame {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
 
-        if (login(email, password)) {
-            JOptionPane.showMessageDialog(this, "Login successful!");
-            dispose(); // Close login window
-            //new MainPage(); // Open main page
-        } else {
-            JOptionPane.showMessageDialog(this, "Invalid email or password.");
+        int userId = login(email, password);
+
+        switch (userId) {
+            case 0:
+                JOptionPane.showMessageDialog(this, "Invalid email or password.");
+                break;
+            case -1:
+                JOptionPane.showMessageDialog(this, "Welcome admin!");
+                dispose();
+                //new MainPage(-1); // you might want a special admin view
+                break;
+            default:
+                JOptionPane.showMessageDialog(this, "Login successful. User ID: " + userId);
+                dispose();
+                //new MainPage(userId);
+                break;
         }
     }
 
@@ -60,35 +70,29 @@ public class Login extends JFrame {
         new Register();
     }
 
-    public static boolean login(String email, String password) {
-        boolean isLoggedIn = false;
+    public static int login(String email, String password) {
+        int userId = 0;
 
         try {
             Class.forName("org.postgresql.Driver");
             try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
-                String query = "{? = call login_user(?, ?)}";
+                String query = "{? = call login_user(?, ?)}"; // function must return INTEGER
                 try (CallableStatement stmt = conn.prepareCall(query)) {
-                    stmt.registerOutParameter(1, Types.BOOLEAN);
+                    stmt.registerOutParameter(1, Types.INTEGER);
                     stmt.setString(2, email);
                     stmt.setString(3, password);
                     stmt.execute();
-                    isLoggedIn = stmt.getBoolean(1);
+                    userId = stmt.getInt(1);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return isLoggedIn;
+        return userId;
     }
 
     public static void main(String[] args) {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> new Login());
+        SwingUtilities.invokeLater(Login::new);
     }
 }
