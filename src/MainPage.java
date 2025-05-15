@@ -72,11 +72,14 @@ public class MainPage {
     }
 
     public void loadRoutesData() {
+        if (routesTable.isEditing()) {
+            routesTable.getCellEditor().stopCellEditing();
+        }
+        model.setRowCount(0);
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
             String query = "SELECT * FROM get_all_routes()";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet rs = stmt.executeQuery();
-                model.setRowCount(0);
                 while (rs.next()) {
                     int id = rs.getInt("id");
                     String name = rs.getString("name");
@@ -96,6 +99,7 @@ public class MainPage {
             e.printStackTrace();
         }
     }
+
 
     class ButtonRenderer extends JPanel implements TableCellRenderer {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -159,23 +163,40 @@ public class MainPage {
         }
 
         private void handleDelete() {
+            if (selectedRow < 0 || selectedRow >= model.getRowCount()) {
+                JOptionPane.showMessageDialog(null, "No valid route selected.");
+                return;
+            }
             int routeId = (int) model.getValueAt(selectedRow, 0);
             int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete route ID: " + routeId + "?");
             if (confirm == JOptionPane.YES_OPTION) {
                 try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
-                    String sql = "SELECT delete_route(?)";
+                    String sql = "SELECT delete_route(?)";  // call your SQL function to delete route + linked POIs
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setInt(1, routeId);
                         stmt.execute();
                     }
                 } catch (SQLException ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "Error deleting route: " + ex.getMessage());
                 }
+
+                // Stop editing BEFORE loading new data
+                if (routesTable.isEditing()) {
+                    routesTable.getCellEditor().stopCellEditing();
+                }
+
+                // Clear selection BEFORE loading new data
+                routesTable.clearSelection();
+
+                // Reload data
                 loadRoutesData();
+
+                // Reset selectedRow
+                selectedRow = -1;
             }
             fireEditingStopped();
         }
+
 
 
         @Override
