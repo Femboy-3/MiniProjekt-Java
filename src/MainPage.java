@@ -12,11 +12,6 @@ public class MainPage {
     private JTable routesTable;
     private DefaultTableModel model;
 
-    // DB connection
-    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "Star.wars1#";
-
     public MainPage() {
         frame = new JFrame("Routes Table");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -79,7 +74,7 @@ public class MainPage {
             routesTable.getCellEditor().stopCellEditing();
         }
         model.setRowCount(0);
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT * FROM get_all_routes()";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet rs = stmt.executeQuery();
@@ -172,7 +167,7 @@ public class MainPage {
             int routeId = (int) model.getValueAt(selectedRow, 0);
             int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete route ID: " + routeId + "?");
             if (confirm == JOptionPane.YES_OPTION) {
-                try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+                try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
                     String sql = "SELECT delete_route(?)";  // call your SQL function to delete route + linked POIs
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setInt(1, routeId);

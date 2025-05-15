@@ -13,10 +13,6 @@ public class AddRoutePage {
     private JList<String> poiList;
     private DefaultListModel<String> poiListModel;
 
-    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "Star.wars1#";
-
     public AddRoutePage() {
         frame = new JFrame("Add New Route");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -124,7 +120,7 @@ public class AddRoutePage {
     }
 
     private void populateCityComboBox(JComboBox<String> comboBox) {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT name FROM citys";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet rs = stmt.executeQuery();
@@ -138,7 +134,7 @@ public class AddRoutePage {
     }
 
     private void populatePoiList() {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT id, pointname FROM pointsofinterest";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet rs = stmt.executeQuery();
@@ -154,7 +150,7 @@ public class AddRoutePage {
     }
 
     private void addRoute() {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT insert_route(?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, nameField.getText());

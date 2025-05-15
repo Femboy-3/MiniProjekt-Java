@@ -4,10 +4,6 @@ import java.sql.*;
 
 public class Login extends JFrame {
 
-    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "Star.wars1#";
-
     private JTextField emailField;
     private JPasswordField passwordField;
 
@@ -80,7 +76,7 @@ public class Login extends JFrame {
 
         try {
             Class.forName("org.postgresql.Driver");
-            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+            try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
                 String query = "SELECT * FROM login_user(?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(query)) {
                     stmt.setString(1, email);

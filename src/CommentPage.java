@@ -15,11 +15,6 @@ public class CommentPage extends JFrame {
     private final int currentUserId;
     private final boolean isAdmin;
 
-    // DB connection details
-    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "Star.wars1#";
-
     public CommentPage(int routeId) {
         super("Comments for Route " + routeId);
         this.routeId = routeId;
@@ -71,7 +66,7 @@ public class CommentPage extends JFrame {
 
     private void loadComments() {
         model.setRowCount(0);
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String sql = "SELECT * FROM get_comments_with_usernames(?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, routeId);
@@ -96,7 +91,7 @@ public class CommentPage extends JFrame {
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String sql = "SELECT add_comment(?, ?, ?)"; // assumed DB func: add_comment(route_id, user_id, comment_text)
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, routeId);
@@ -137,7 +132,7 @@ public class CommentPage extends JFrame {
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String sql = "SELECT delete_comment(?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, commentId);

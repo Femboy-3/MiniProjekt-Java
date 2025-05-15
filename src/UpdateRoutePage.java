@@ -16,10 +16,6 @@ public class UpdateRoutePage {
 
     private int routeId;
 
-    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "Star.wars1#";
-
     public UpdateRoutePage(int routeId) {
         this.routeId = routeId;
 
@@ -132,7 +128,7 @@ public class UpdateRoutePage {
     }
 
     private void populateCityComboBox(JComboBox<String> comboBox) {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT name FROM citys";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet rs = stmt.executeQuery();
@@ -146,7 +142,7 @@ public class UpdateRoutePage {
     }
 
     private void populatePoiList() {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT id, pointname FROM pointsofinterest";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 ResultSet rs = stmt.executeQuery();
@@ -161,7 +157,7 @@ public class UpdateRoutePage {
     }
 
     private void loadRouteData() {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT * FROM get_route_by_id(?)";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setInt(1, routeId);
@@ -200,7 +196,7 @@ public class UpdateRoutePage {
     }
 
     private void updateRoute() {
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             String query = "SELECT update_route(?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setInt(1, routeId);

@@ -5,10 +5,6 @@ import java.sql.*;
 
 public class Register extends JFrame {
 
-    private static final String DB_URL = "jdbc:postgresql://kolesarskepoti.c9286iewgnlt.eu-north-1.rds.amazonaws.com/kolesarskepoti";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "Star.wars1#";
-
     public Register() {
         createAndShowGUI();
     }
@@ -67,7 +63,7 @@ public class Register extends JFrame {
     private boolean registerUser(String username, String email, String password, String phone) {
         boolean success = false;
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+        try (Connection conn = DriverManager.getConnection(DataBaseConnection.DB_URL, DataBaseConnection.USER, DataBaseConnection.PASSWORD)) {
             Class.forName("org.postgresql.Driver");
 
             String query = "{? = call register_user(?, ?, ?, ?)}";
