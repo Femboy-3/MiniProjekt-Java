@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import java.sql.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -36,6 +37,14 @@ public class MainPage {
 
         routesTable = new JTable(model);
         routesTable.setRowHeight(40);
+
+        for (int i = 0; i < routesTable.getColumnCount() - 1; i++) {
+            TableColumn col = routesTable.getColumnModel().getColumn(i);
+            col.setPreferredWidth(35);
+        }
+        // Set Actions column to auto-size to fit buttons:
+        TableColumn actionsColumn = routesTable.getColumnModel().getColumn(10);
+        actionsColumn.setPreferredWidth(220); // enough width for buttons
 
         JScrollPane scrollPane = new JScrollPane(routesTable);
         frame.add(scrollPane, BorderLayout.CENTER);
@@ -86,22 +95,6 @@ public class MainPage {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        autoResizeColumn(routesTable, 10);
-    }
-
-    private void autoResizeColumn(JTable table, int columnIndex) {
-        TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-        Component headerComp = headerRenderer.getTableCellRendererComponent(table, table.getColumnName(columnIndex), false, false, 0, columnIndex);
-        int maxWidth = headerComp.getPreferredSize().width;
-
-        for (int row = 0; row < table.getRowCount(); row++) {
-            TableCellRenderer cellRenderer = table.getCellRenderer(row, columnIndex);
-            Component comp = table.prepareRenderer(cellRenderer, row, columnIndex);
-            maxWidth = Math.max(comp.getPreferredSize().width, maxWidth);
-        }
-
-        table.getColumnModel().getColumn(columnIndex).setPreferredWidth(maxWidth + 20); // extra padding
     }
 
     class ButtonRenderer extends JPanel implements TableCellRenderer {
@@ -154,7 +147,8 @@ public class MainPage {
 
         private void handleComments() {
             int routeId = (int) model.getValueAt(selectedRow, 0);
-            JOptionPane.showMessageDialog(null, "Open comments for route ID: " + routeId);
+            JOptionPane.showMessageDialog(null, "Invalid email or password.");
+            //new CommentPage(routeId);
             fireEditingStopped();
         }
 
